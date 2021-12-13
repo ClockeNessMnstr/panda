@@ -431,6 +431,11 @@ class PandaSafetyTest(PandaSafetyTestBase):
             if attr.startswith('TestHonda'):
               # exceptions for common msgs across different hondas
               tx = list(filter(lambda m: m[0] not in [0x1FA, 0x30C], tx))
+            # TODO: Temporary, refactor subaru safety
+            if attr in ['TestSubaru2020Safety', 'TestSubaruGen2Safety', 'TestSubaruHybridSafety', 'TestSubaruSafety']:
+              tx = list(filter(lambda m: m[0] not in [0x122, 0x221, 0x321, 0x322, 0x40, 0x139], tx))
+            if attr in ['TestSubaruLegacySafety', 'TestSubaruLegacy2019Safety']:
+              tx = list(filter(lambda m: m[0] not in [0x161, 0x164, 0x140], tx))
             all_tx.append(list([m[0], m[1], attr[4:]] for m in tx))
 
     # make sure we got all the msgs

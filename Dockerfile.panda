@@ -27,6 +27,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libzmq3-dev \
     locales \
     make \
+    ocl-icd-opencl-dev \
+    opencl-headers  \
     pkg-config \
     python \
     python-dev \
@@ -57,10 +59,10 @@ RUN cd /tmp && \
     FILESDIR=/usr/share/cppcheck make -j4 install
 
 RUN cd /tmp && \
-    git clone https://github.com/commaai/openpilot.git tmppilot || true && \
+    git clone https://github.com/martinl/openpilot.git tmppilot || true && \
     cd /tmp/tmppilot && \
     git fetch && \
-    git checkout 579994ced9751df2616aa1a62ab3b8a69e811fca && \
+    git checkout 1b2877ed0ed525175e942fe83e521956f0c269fc && \
     git submodule update --init cereal opendbc rednose_repo && \
     mkdir /tmp/openpilot && \
     cp -pR SConstruct site_scons/ tools/ selfdrive/ common/ cereal/ opendbc/ rednose/ /tmp/openpilot && \
