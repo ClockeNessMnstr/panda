@@ -23,11 +23,11 @@ class TestSubaruSafety(common.PandaSafetyTest):
   cnt_speed = 0
   cnt_brake = 0
 
-  TX_MSGS = [[0x122, 0], [0x221, 0], [0x321, 0], [0x322, 0], [0x40, 2], [0x139, 2]]
+  TX_MSGS = [[0x122, 0], [0x220, 0], [0x221, 0], [0x222, 0], [0x321, 0], [0x322, 0], [0x240, 2], [0x13c, 2]]
   STANDSTILL_THRESHOLD = 20  # 1kph (see dbc file)
   RELAY_MALFUNCTION_ADDR = 0x122
   RELAY_MALFUNCTION_BUS = 0
-  FWD_BLACKLISTED_ADDRS = {0: [0x40, 0x139], 2: [0x122, 0x221, 0x321, 0x322]}
+  FWD_BLACKLISTED_ADDRS = {0: [0x240, 0x13c], 2: [0x122, 0x220, 0x221, 0x222, 0x321, 0x322]}
   FWD_BUS_LOOKUP = {0: 2, 2: 0}
 
   MAX_STEER = 2047
