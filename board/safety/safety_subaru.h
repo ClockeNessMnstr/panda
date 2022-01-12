@@ -12,7 +12,7 @@ const int SUBARU_STANDSTILL_THRSLD = 20;  // about 1kph
 const int SUBARU_L_DRIVER_TORQUE_ALLOWANCE = 75;
 const int SUBARU_L_DRIVER_TORQUE_FACTOR = 10;
 
-const CanMsg SUBARU_TX_MSGS[] = {{0x122, 0, 8}, {0x221, 0, 8}, {0x322, 0, 8}};
+const CanMsg SUBARU_TX_MSGS[] = {{0x122, 0, 8}, {0x220, 0, 8}, {0x221, 0, 8}, {0x222, 0, 8}, {0x321, 0, 8}, {0x322, 0, 8}, {0x13c, 2, 8}, {0x240, 2, 8}};
 #define SUBARU_TX_MSGS_LEN (sizeof(SUBARU_TX_MSGS) / sizeof(SUBARU_TX_MSGS[0]))
 
 AddrCheckStruct subaru_addr_checks[] = {
@@ -269,17 +269,27 @@ static int subaru_legacy_tx_hook(CANPacket_t *to_send) {
 static int subaru_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
   int bus_fwd = -1;
 
-  if (bus_num == 0) {
-    bus_fwd = 2;  // Camera CAN
-  }
+  int addr = GET_ADDR(to_fwd);
 
+  if (bus_num == 0) {
+    // 0x13c is Brake_Status for Global
+    // 0x240 is CruiseControl for Global
+    int block_msg = ((addr == 0x13c) || (addr == 0x240));
+    if (!block_msg) {
+      bus_fwd = 2;  // Camera CAN
+    }
+  }
   if (bus_num == 2) {
-    // Global platform
-    // 0x122 ES_LKAS
-    // 0x221 ES_Distance
-    // 0x322 ES_LKAS_State
-    int addr = GET_ADDR(to_fwd);
-    int block_msg = ((addr == 0x122) || (addr == 0x221) || (addr == 0x322));
+    // Global Platform:
+    // 0x122 is ES_LKAS
+    // 0x220 is ES_Brake
+    // 0x221 is ES_Distance
+    // 0x222 is ES_Status
+    // 0x321 is ES_DashStatus
+    // 0x322 is ES_LKAS_State
+    int block_msg = ((addr == 0x122) || (addr == 0x220) ||
+                     (addr == 0x221) || (addr == 0x222) ||
+                     (addr == 0x321) || (addr == 0x322));
     if (!block_msg) {
       bus_fwd = 0;  // Main CAN
     }
