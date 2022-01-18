@@ -9,7 +9,7 @@ from panda.tests.safety.common import CANPackerPanda
 RT_INTERVAL = 250000
 
 DRIVER_TORQUE_ALLOWANCE = 60
-DRIVER_TORQUE_FACTOR = 10
+DRIVER_TORQUE_FACTOR = 20
 
 
 class TestSubaruSafety(common.PandaSafetyTest):
