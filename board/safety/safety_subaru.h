@@ -10,7 +10,7 @@ const uint32_t SUBARU_RT_INTERVAL = 250000;    // 250ms between real time checks
 const int SUBARU_MAX_RATE_UP = 30;
 const int SUBARU_MAX_RATE_DOWN = 30;
 const int SUBARU_DRIVER_TORQUE_ALLOWANCE = 60;
-const int SUBARU_DRIVER_TORQUE_FACTOR = 10;
+const int SUBARU_DRIVER_TORQUE_FACTOR = 20;
 const int SUBARU_STANDSTILL_THRSLD = 20;  // about 1kph
 
 const int SUBARU_L_DRIVER_TORQUE_ALLOWANCE = 75;
