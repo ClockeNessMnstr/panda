@@ -27,6 +27,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libzmq3-dev \
     locales \
     make \
+    ocl-icd-opencl-dev \
+    opencl-headers  \
     pkg-config \
     python \
     python-dev \
@@ -57,7 +59,7 @@ RUN cd /tmp && \
     FILESDIR=/usr/share/cppcheck make -j4 install
 
 RUN cd /tmp && \
-    git clone https://github.com/commaai/openpilot.git tmppilot || true && \
+    git clone https://github.com/martinl/openpilot.git tmppilot || true && \
     cd /tmp/tmppilot && \
     git fetch && \
     git checkout cdd3598146c9e06362683e2993af730157abf0b6 && \
