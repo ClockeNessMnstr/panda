@@ -13,18 +13,19 @@ MAX_STEER = 2047
 MAX_RT_DELTA = 940
 RT_INTERVAL = 250000
 
-DRIVER_TORQUE_ALLOWANCE = 75
+DRIVER_TORQUE_ALLOWANCE = 60
 DRIVER_TORQUE_FACTOR = 10
+BRAKE_THRESHOLD = 2
 
 
 class TestSubaruLegacySafety(common.PandaSafetyTest):
   cnt_gas = 0
 
-  TX_MSGS = [[0x161, 0], [0x164, 0]]
+  TX_MSGS = [[0x161, 0], [0x164, 0], [0x140, 2]]
   STANDSTILL_THRESHOLD = 20  # 1kph (see dbc file)
   RELAY_MALFUNCTION_ADDR = 0x164
   RELAY_MALFUNCTION_BUS = 0
-  FWD_BLACKLISTED_ADDRS = {2: [0x161, 0x164]}
+  FWD_BLACKLISTED_ADDRS = {0: [0x140], 2: [0x161, 0x164]}
   FWD_BUS_LOOKUP = {0: 2, 2: 0}
 
   def setUp(self):
@@ -47,6 +48,8 @@ class TestSubaruLegacySafety(common.PandaSafetyTest):
     return self.packer.make_can_msg_panda("Wheel_Speeds", 0, values)
 
   def _brake_msg(self, brake):
+    if brake > 0 and brake < BRAKE_THRESHOLD:
+      brake = BRAKE_THRESHOLD + 1
     values = {"Brake_Pedal": brake}
     return self.packer.make_can_msg_panda("Brake_Pedal", 0, values)
 
@@ -155,6 +158,13 @@ class TestSubaruLegacySafety(common.PandaSafetyTest):
       self.assertTrue(self._tx(self._torque_msg(sign * (MAX_RT_DELTA - 1))))
       self.assertTrue(self._tx(self._torque_msg(sign * (MAX_RT_DELTA + 1))))
 
+class TestSubaruLegacy2019Safety(TestSubaruLegacySafety):
+
+  def setUp(self):
+    self.packer = CANPackerPanda("subaru_outback_2019_generated")
+    self.safety = libpandasafety_py.libpandasafety
+    self.safety.set_safety_hooks(Panda.SAFETY_SUBARU_LEGACY, 1)
+    self.safety.init_tests()
 
 if __name__ == "__main__":
   unittest.main()
