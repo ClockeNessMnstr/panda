@@ -24,11 +24,11 @@ class TestSubaruSafety(common.PandaSafetyTest):
   cnt_speed = 0
   cnt_brake = 0
 
-  TX_MSGS = [[0x122, 0], [0x221, 0], [0x322, 0]]
+  TX_MSGS = [[0x122, 0], [0x221, 0], [0x321, 0], [0x322, 0], [0x40, 2], [0x139, 2]]
   STANDSTILL_THRESHOLD = 20  # 1kph (see dbc file)
   RELAY_MALFUNCTION_ADDR = 0x122
   RELAY_MALFUNCTION_BUS = 0
-  FWD_BLACKLISTED_ADDRS = {2: [0x122, 0x221, 0x322]}
+  FWD_BLACKLISTED_ADDRS = {0: [0x40, 0x139], 2: [0x122, 0x221, 0x321, 0x322]}
   FWD_BUS_LOOKUP = {0: 2, 2: 0}
 
   def setUp(self):
@@ -163,6 +163,57 @@ class TestSubaruSafety(common.PandaSafetyTest):
       self.safety.set_timer(RT_INTERVAL + 1)
       self.assertTrue(self._tx(self._torque_msg(sign * (MAX_RT_DELTA - 1))))
       self.assertTrue(self._tx(self._torque_msg(sign * (MAX_RT_DELTA + 1))))
+
+class TestSubaruGen2Safety(TestSubaruSafety):
+  TX_MSGS = [[0x122, 0], [0x321, 0], [0x322, 0], [0x40, 2], [0x139, 2]]
+  FWD_BLACKLISTED_ADDRS = {0: [0x40, 0x139], 2: [0x122, 0x321, 0x322]}
+
+  def setUp(self):
+    self.packer = CANPackerPanda("subaru_global_2017_generated")
+    self.safety = libpandasafety_py.libpandasafety
+    self.safety.set_safety_hooks(Panda.SAFETY_SUBARU_GEN2, 0)
+    self.safety.init_tests()
+
+  def _speed_msg(self, speed):
+    # subaru safety doesn't use the scaled value, so undo the scaling
+    values = {s: speed * 0.057 for s in ["FR", "FL", "RR", "RL"]}
+    values["Counter"] = self.cnt_speed % 4
+    self.__class__.cnt_speed += 1
+    return self.packer.make_can_msg_panda("Wheel_Speeds", 1, values)
+
+  def _brake_msg(self, brake):
+    values = {"Brake": brake, "Counter": self.cnt_brake % 4}
+    self.__class__.cnt_brake += 1
+    return self.packer.make_can_msg_panda("Brake_Status", 1, values)
+
+  def _pcm_status_msg(self, enable):
+    values = {"Cruise_Activated": enable, "Counter": self.cnt_cruise % 4}
+    self.__class__.cnt_cruise += 1
+    return self.packer.make_can_msg_panda("CruiseControl", 1, values)
+
+class TestSubaruHybridSafety(TestSubaruSafety):
+  TX_MSGS = [[0x122, 0], [0x321, 0], [0x322, 0], [0x40, 2], [0x139, 2]]
+  FWD_BLACKLISTED_ADDRS = {0: [0x40, 0x139], 2: [0x122, 0x321, 0x322]}
+
+  def setUp(self):
+    self.packer = CANPackerPanda("subaru_global_2020_hybrid_generated")
+    self.safety = libpandasafety_py.libpandasafety
+    self.safety.set_safety_hooks(Panda.SAFETY_SUBARU_HYBRID, 0)
+    self.safety.init_tests()
+
+  def _brake_msg(self, brake):
+    values = {"Brake": brake}
+    return self.packer.make_can_msg_panda("Brake_Hybrid", 1, values)
+
+  def _gas_msg(self, gas):
+    values = {"Throttle_Pedal": gas, "Counter": self.cnt_gas % 4}
+    self.__class__.cnt_gas += 1
+    return self.packer.make_can_msg_panda("Throttle_Hybrid", 1, values)
+
+  def _pcm_status_msg(self, enable):
+    values = {"Cruise_Activated": enable, "Counter": self.cnt_cruise % 4}
+    self.__class__.cnt_cruise += 1
+    return self.packer.make_can_msg_panda("ES_DashStatus", 2, values)
 
 
 if __name__ == "__main__":
