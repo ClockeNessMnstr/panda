@@ -367,17 +367,17 @@ bool driver_limit_check(int val, int val_last, struct sample_t *val_driver,
   const int MAX_VAL, const int MAX_RATE_UP, const int MAX_RATE_DOWN,
   const int MAX_ALLOWANCE, const int DRIVER_FACTOR) {
 
-  int highest_allowed_rl = MAX(val_last, 0) + MAX_RATE_UP;
-  int lowest_allowed_rl = MIN(val_last, 0) - MAX_RATE_UP;
+  int highest_allowed_rl = MAX(val_last, -MAX_VAL) + MAX_RATE_UP;
+  int lowest_allowed_rl = MIN(val_last, MAX_VAL) - MAX_RATE_UP;
 
   int driver_max_limit = MAX_VAL + (MAX_ALLOWANCE + val_driver->max) * DRIVER_FACTOR;
   int driver_min_limit = -MAX_VAL + (-MAX_ALLOWANCE + val_driver->min) * DRIVER_FACTOR;
 
-  // if we've exceeded the applied torque, we must start moving toward 0
+  // if we've exceeded the applied torque, we must start moving toward driver input
   int highest_allowed = MIN(highest_allowed_rl, MAX(val_last - MAX_RATE_DOWN,
-                                             MAX(driver_max_limit, 0)));
+                                             MAX(driver_max_limit, -MAX_VAL)));
   int lowest_allowed = MAX(lowest_allowed_rl, MIN(val_last + MAX_RATE_DOWN,
-                                           MIN(driver_min_limit, 0)));
+                                           MIN(driver_min_limit, MAX_VAL)));
 
   // check for violation
   return (val < lowest_allowed) || (val > highest_allowed);
