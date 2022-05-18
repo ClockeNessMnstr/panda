@@ -16,11 +16,11 @@ class TestSubaruLegacySafety(common.PandaSafetyTest, common.DriverTorqueSteering
   FWD_BLACKLISTED_ADDRS = {2: [0x161, 0x164]}
   FWD_BUS_LOOKUP = {0: 2, 2: 0}
 
-  MAX_RATE_UP = 50
-  MAX_RATE_DOWN = 70
+  MAX_RATE_UP = 30
+  MAX_RATE_DOWN = 30
   MAX_TORQUE = 2047
 
-  MAX_RT_DELTA = 940
+  MAX_RT_DELTA = 420
   RT_INTERVAL = 250000
 
   DRIVER_TORQUE_ALLOWANCE = 75

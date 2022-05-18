@@ -20,11 +20,11 @@ class TestSubaruSafety(common.PandaSafetyTest, common.DriverTorqueSteeringSafety
   FWD_BLACKLISTED_ADDRS = {2: [0x122, 0x221, 0x322]}
   FWD_BUS_LOOKUP = {0: 2, 2: 0}
 
-  MAX_RATE_UP = 50
-  MAX_RATE_DOWN = 70
+  MAX_RATE_UP = 30
+  MAX_RATE_DOWN = 30
   MAX_TORQUE = 2047
 
-  MAX_RT_DELTA = 940
+  MAX_RT_DELTA = 420
   RT_INTERVAL = 250000
 
   DRIVER_TORQUE_ALLOWANCE = 60
@@ -72,6 +72,18 @@ class TestSubaruSafety(common.PandaSafetyTest, common.DriverTorqueSteeringSafety
     self.__class__.cnt_cruise += 1
     return self.packer.make_can_msg_panda("CruiseControl", 0, values)
 
+class TestSubaru3071Safety(TestSubaruSafety):
+  MAX_RATE_UP = 60
+  MAX_RATE_DOWN = 60
+  MAX_TORQUE = 3071
+
+  MAX_RT_DELTA = 840
+  
+  def setUp(self):
+    self.packer = CANPackerPanda("subaru_global_2017_generated")
+    self.safety = libpandasafety_py.libpandasafety
+    self.safety.set_safety_hooks(Panda.SAFETY_SUBARU, 2)
+    self.safety.init_tests()
 
 if __name__ == "__main__":
   unittest.main()
