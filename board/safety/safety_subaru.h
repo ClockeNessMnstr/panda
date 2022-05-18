@@ -1,10 +1,14 @@
 const int SUBARU_MAX_STEER = 2047; // 1s
+const int SUBARU_MAX_STEER_3071 = 3071;
+const int SUBARU_MAX_RT_DELTA_3071 = 840;
+const int SUBARU_MAX_RATE_UP_3071 = 60;
+const int SUBARU_MAX_RATE_DOWN_3071 = 60;
 // real time torque limit to prevent controls spamming
 // the real time limit is 1500/sec
-const int SUBARU_MAX_RT_DELTA = 940;          // max delta torque allowed for real time checks
+const int SUBARU_MAX_RT_DELTA = 420;          // max delta torque allowed for real time checks
 const uint32_t SUBARU_RT_INTERVAL = 250000;    // 250ms between real time checks
-const int SUBARU_MAX_RATE_UP = 50;
-const int SUBARU_MAX_RATE_DOWN = 70;
+const int SUBARU_MAX_RATE_UP = 30;
+const int SUBARU_MAX_RATE_DOWN = 30;
 const int SUBARU_DRIVER_TORQUE_ALLOWANCE = 60;
 const int SUBARU_DRIVER_TORQUE_FACTOR = 10;
 const int SUBARU_STANDSTILL_THRSLD = 20;  // about 1kph
@@ -70,6 +74,8 @@ AddrCheckStruct subaru_forester_hybrid_addr_checks[] = {
 #define SUBARU_FORESTER_HYBRID_ADDR_CHECK_LEN (sizeof(subaru_forester_hybrid_addr_checks) / sizeof(subaru_forester_hybrid_addr_checks[0]))
 addr_checks subaru_forester_hybrid_rx_checks = {subaru_forester_hybrid_addr_checks, SUBARU_FORESTER_HYBRID_ADDR_CHECK_LEN};
 
+const uint16_t SUBARU_PARAM_MAX_STEER_3071 = 2;
+bool subaru_max_steer_3071 = false;
 
 const uint16_t SUBARU_L_PARAM_FLIP_DRIVER_TORQUE = 1;
 bool subaru_l_flip_driver_torque = false;
@@ -206,19 +212,33 @@ static int subaru_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
 
     if (controls_allowed) {
 
-      // *** global torque limit check ***
-      violation |= max_limit_check(desired_torque, SUBARU_MAX_STEER, -SUBARU_MAX_STEER);
+      if (subaru_max_steer_3071) {
+        // *** global torque limit check ***
+        violation |= max_limit_check(desired_torque, SUBARU_MAX_STEER_3071, -SUBARU_MAX_STEER_3071);
 
-      // *** torque rate limit check ***
-      violation |= driver_limit_check(desired_torque, desired_torque_last, &torque_driver,
-        SUBARU_MAX_STEER, SUBARU_MAX_RATE_UP, SUBARU_MAX_RATE_DOWN,
-        SUBARU_DRIVER_TORQUE_ALLOWANCE, SUBARU_DRIVER_TORQUE_FACTOR);
+        // *** torque rate limit check ***
+        violation |= driver_limit_check(desired_torque, desired_torque_last, &torque_driver,
+          SUBARU_MAX_STEER_3071, SUBARU_MAX_RATE_UP_3071, SUBARU_MAX_RATE_DOWN_3071,
+          SUBARU_DRIVER_TORQUE_ALLOWANCE, SUBARU_DRIVER_TORQUE_FACTOR);
+      } else {
+        // *** global torque limit check ***
+        violation |= max_limit_check(desired_torque, SUBARU_MAX_STEER, -SUBARU_MAX_STEER);
+
+        // *** torque rate limit check ***
+        violation |= driver_limit_check(desired_torque, desired_torque_last, &torque_driver,
+          SUBARU_MAX_STEER, SUBARU_MAX_RATE_UP, SUBARU_MAX_RATE_DOWN,
+          SUBARU_DRIVER_TORQUE_ALLOWANCE, SUBARU_DRIVER_TORQUE_FACTOR);
+      }
 
       // used next time
       desired_torque_last = desired_torque;
 
       // *** torque real time rate limit check ***
-      violation |= rt_rate_limit_check(desired_torque, rt_torque_last, SUBARU_MAX_RT_DELTA);
+      if (subaru_max_steer_3071) {
+        violation |= rt_rate_limit_check(desired_torque, rt_torque_last, SUBARU_MAX_RT_DELTA_3071);
+      } else {
+        violation |= rt_rate_limit_check(desired_torque, rt_torque_last, SUBARU_MAX_RT_DELTA);
+      }
 
       // every RT_INTERVAL set the new limits
       uint32_t ts_elapsed = get_ts_elapsed(ts, ts_last);
@@ -638,9 +658,11 @@ static int subaru_forester_hybrid_rx_hook(CANPacket_t *to_push) {
 
 
 static const addr_checks* subaru_init(uint32_t param) {
-  UNUSED(param);
+  // UNUSED(param);
   controls_allowed = false;
   relay_malfunction_reset();
+  // Checking for higher max steer from safety parameter
+  subaru_max_steer_3071 = GET_FLAG(param, SUBARU_PARAM_MAX_STEER_3071);
   return &subaru_rx_checks;
 }
 
