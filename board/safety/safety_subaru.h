@@ -10,8 +10,9 @@
     .type = TorqueDriverLimited,                                                 \
   }                                                                              \
 
-const SteeringLimits SUBARU_STEERING_LIMITS      = SUBARU_STEERING_LIMITS_GENERATOR(2047, 50, 70);
-const SteeringLimits SUBARU_GEN2_STEERING_LIMITS = SUBARU_STEERING_LIMITS_GENERATOR(1000, 40, 40);
+const SteeringLimits SUBARU_STEERING_LIMITS                = SUBARU_STEERING_LIMITS_GENERATOR(2047, 50, 70);
+const SteeringLimits SUBARU_GEN2_STEERING_LIMITS           = SUBARU_STEERING_LIMITS_GENERATOR(1000, 40, 40);
+const SteeringLimits SUBARU_2018_CROSSTREK_STEERING_LIMITS = SUBARU_STEERING_LIMITS_GENERATOR(3071, 60, 60);
 
 
 const LongitudinalLimits SUBARU_LONG_LIMITS = {
@@ -91,9 +92,11 @@ addr_checks subaru_gen2_rx_checks = {subaru_gen2_addr_checks, SUBARU_GEN2_ADDR_C
 
 const uint16_t SUBARU_PARAM_GEN2 = 1;
 const uint16_t SUBARU_PARAM_LONGITUDINAL = 2;
+const uint16_t SUBARU_PARAM_2018 = 4;
 
 bool subaru_gen2 = false;
 bool subaru_longitudinal = false;
+bool subaru_2018 = false;
 
 
 static uint32_t subaru_get_checksum(CANPacket_t *to_push) {
@@ -187,7 +190,9 @@ static int subaru_tx_hook(CANPacket_t *to_send) {
     int desired_torque = ((GET_BYTES(to_send, 0, 4) >> 16) & 0x1FFFU);
     desired_torque = -1 * to_signed(desired_torque, 13);
 
-    const SteeringLimits limits = subaru_gen2 ? SUBARU_GEN2_STEERING_LIMITS : SUBARU_STEERING_LIMITS;
+    const SteeringLimits limits = subaru_gen2 ? SUBARU_GEN2_STEERING_LIMITS :
+                                 (subaru_2018 ? SUBARU_2018_CROSSTREK_STEERING_LIMITS:
+                                 SUBARU_STEERING_LIMITS);
     violation |= steer_torque_cmd_checks(desired_torque, -1, limits);
   }
 
@@ -253,6 +258,7 @@ static int subaru_fwd_hook(int bus_num, int addr) {
 
 static const addr_checks* subaru_init(uint16_t param) {
   subaru_gen2 = GET_FLAG(param, SUBARU_PARAM_GEN2);
+  subaru_2018 = GET_FLAG(param, SUBARU_PARAM_2018);
 
 #ifdef ALLOW_DEBUG
   subaru_longitudinal = GET_FLAG(param, SUBARU_PARAM_LONGITUDINAL) && !subaru_gen2;

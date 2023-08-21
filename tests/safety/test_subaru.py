@@ -155,6 +155,12 @@ class TestSubaruGen1TorqueStockLongitudinalSafety(TestSubaruStockLongitudinalSaf
   FLAGS = 0
   TX_MSGS = lkas_tx_msgs(SUBARU_MAIN_BUS)
 
+class TestSubaru2018CrosstrekTorqueStockLongitudinalSafety(TestSubaruStockLongitudinalSafetyBase, TestSubaruTorqueSafetyBase):
+  MAX_RATE_UP = 60
+  MAX_RATE_DOWN = 60
+  MAX_TORQUE = 3071
+  FLAGS = Panda.FLAG_SUBARU_2018
+  TX_MSGS = lkas_tx_msgs(SUBARU_MAIN_BUS)
 
 class TestSubaruGen2TorqueStockLongitudinalSafety(TestSubaruStockLongitudinalSafetyBase, TestSubaruTorqueSafetyBase):
   ALT_MAIN_BUS = SUBARU_ALT_BUS
