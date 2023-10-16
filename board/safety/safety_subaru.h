@@ -10,7 +10,7 @@
     .type = TorqueDriverLimited,                                                 \
   }                                                                              \
 
-const SteeringLimits SUBARU_STEERING_LIMITS                = SUBARU_STEERING_LIMITS_GENERATOR(2047, 50, 70);
+const SteeringLimits SUBARU_STEERING_LIMITS                = SUBARU_STEERING_LIMITS_GENERATOR(2047, 30, 30);
 const SteeringLimits SUBARU_GEN2_STEERING_LIMITS           = SUBARU_STEERING_LIMITS_GENERATOR(1000, 40, 40);
 const SteeringLimits SUBARU_2018_CROSSTREK_STEERING_LIMITS = SUBARU_STEERING_LIMITS_GENERATOR(3071, 60, 60);
 

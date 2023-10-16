@@ -142,8 +142,8 @@ class TestSubaruLongitudinalSafetyBase(TestSubaruSafetyBase, common.Longitudinal
 
 
 class TestSubaruTorqueSafetyBase(TestSubaruSafetyBase, common.DriverTorqueSteeringSafetyTest):
-  MAX_RATE_UP = 50
-  MAX_RATE_DOWN = 70
+  MAX_RATE_UP = 30
+  MAX_RATE_DOWN = 30
   MAX_TORQUE = 2047
 
   def _torque_cmd_msg(self, torque, steer_req=1):
